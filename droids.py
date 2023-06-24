@@ -10,6 +10,8 @@ from abc import ABC, abstractmethod
 
 # First-party Imports
 from abstract_droid import AbstractDroid
+from datastructures import Stack, Queue
+from mergesort import MergeSort
 
 
 class Droid(AbstractDroid, ABC):
@@ -102,6 +104,26 @@ class Droid(AbstractDroid, ABC):
             raise ValueError("Unknown color")
 
         return color_cost
+
+    # Rich comparison methods. Required if we want to be able to compare
+    # one droid with another.
+    # NOTE: Skipping the eq and ne methods as having the same total cost does
+    # not mean that they are the same object or instance.
+    def __lt__(self, other):
+        """Less than rich comparison method"""
+        return self.total_cost < other.total_cost
+
+    def __le__(self, other):
+        """Less than or equal rich comparison method"""
+        return self.total_cost <= other.total_cost
+
+    def __gt__(self, other):
+        """Greater than rich comparison method"""
+        return self.total_cost > other.total_cost
+
+    def __ge__(self, other):
+        """Greater than or equal rich comparison method"""
+        return self.total_cost >= other.total_cost
 
 
 class ProtocolDroid(Droid):
@@ -356,3 +378,204 @@ class DroidCollection:
             return_string += f"{os.linesep}"
         # Return completed string.
         return return_string
+
+    def sort_into_categories(self):
+        """Sort the collection of droids by category"""
+
+        # Create a stack for each type of droid.
+        protocol_stack = Stack()
+        utility_stack = Stack()
+        janitor_stack = Stack()
+        astromech_stack = Stack()
+
+        # Create a queue to hold the droids as we pop them off the stacks
+        droid_queue = Queue()
+
+        # For each Droid in the droid collection
+        for droid in self._collection:
+            # The testing of the droids must occur in this order.
+            # It must be done in the order of most specific to least.
+
+            # If we were to test a droid that IS of type Astromech against
+            # Utility BEFORE we test against Astromech, it would pass and be put
+            # into the Utility stack and not the Astromech. That is why it is
+            # important to test from most specific to least.
+
+            # If the droid is an Astromech, push it on the astromech stack
+            if isinstance(droid, AstromechDroid):
+                astromech_stack.push(droid)
+            # Else if the droid is a Janitor droid, push it on the janitor stack.
+            elif isinstance(droid, JanitorDroid):
+                janitor_stack.push(droid)
+            # Check for Utility
+            elif isinstance(droid, UtilityDroid):
+                utility_stack.push(droid)
+            # Check for Protocol
+            elif isinstance(droid, ProtocolDroid):
+                protocol_stack.push(droid)
+            # Unknown type of droid
+            else:
+                raise TypeError("Unknown droid type.")
+
+        # Now that the droids are all in their respective stacks, we can do
+        # the work of popping them off of the stacks and adding them to the
+        # queue.
+        # It is required that they be popped off from each stack in this
+        # order so that they have the correct order going into the queue.
+
+        # This is a primer pop. It gest the first droid off the stack.
+        # Which could be None if the stack is empty.
+        current_astromech = astromech_stack.pop()
+        # While the droid that is popped off is not None
+        while current_astromech is not None:
+            # Add the popped droid to the queue
+            droid_queue.enqueue(current_astromech)
+            # Pop off the next droid for the loop test
+            current_astromech = astromech_stack.pop()
+
+        # See above lines for Astromech. It is the same except for Janitor
+        current_janitor = janitor_stack.pop()
+        while current_janitor is not None:
+            droid_queue.enqueue(current_janitor)
+            current_janitor = janitor_stack.pop()
+
+        # See above lines for Astromech. It is the same except for Utility
+        current_utility = utility_stack.pop()
+        while current_utility is not None:
+            droid_queue.enqueue(current_utility)
+            current_utility = utility_stack.pop()
+
+        # See above lines for Astromech. It is the same except for Protocol
+        current_protocol = protocol_stack.pop()
+        while current_protocol is not None:
+            droid_queue.enqueue(current_protocol)
+            current_protocol = protocol_stack.pop()
+
+        # Now that the droids have all been removed from the stacks and put
+        # into the queue, we need to dequeue them all and put them back into
+        # the original list
+
+        # Set a counter to 0
+        counter = 0
+
+        # This is primer dequeue that will get the first droid out of the
+        # queue.
+        droid = droid_queue.dequeue()
+        # While the dequeued droid is not None.
+        while droid is not None:
+            # Add the droid to the droid collection using the int counter
+            # as the index.
+            self._collection[counter] = droid
+            # Increment the counter
+            counter += 1
+            # Dequeue the next droid off the queue so it can be used in the
+            # while condition
+            droid = droid_queue.dequeue()
+
+    def sort_by_total_cost(self):
+        """Sort the droids by the total cost using Merge Sort."""
+
+        # Create a new merger sorter instance
+        merge_sorter = MergeSort()
+        # Make sure that `calculate_total_cost` gets called on each droid
+        # before sorting. Otherwise, they will all be zero and the sort won't
+        # do anything.
+        for droid in self._collection:
+            droid.calculate_total_cost()
+
+        # Call the sort method on the MergeSort instance and pass it the
+        # list to sort.
+        merge_sorter.sort(self._collection)
+
+    def load_default_droids(self):
+        """Load some default droids into the collection so it is not empty"""
+        self.add_protocol(
+            Droid.Materials.CARBONITE,
+            Droid.Colors.WHITE,
+            12,
+        )
+        self.add_utility(
+            Droid.Materials.VANADIUM,
+            Droid.Colors.RED,
+            True,
+            True,
+            True,
+        )
+        self.add_janitor(
+            Droid.Materials.QUADRANIUM,
+            Droid.Colors.BLUE,
+            True,
+            True,
+            True,
+            True,
+            True,
+        )
+        self.add_astromech(
+            Droid.Materials.TEARS_OF_A_JEDI,
+            Droid.Colors.GREEN,
+            True,
+            True,
+            False,
+            True,
+            80,
+        )
+        self.add_protocol(
+            Droid.Materials.TEARS_OF_A_JEDI,
+            Droid.Colors.BLUE,
+            22,
+        )
+        self.add_janitor(
+            Droid.Materials.QUADRANIUM,
+            Droid.Colors.RED,
+            False,
+            False,
+            False,
+            False,
+            True,
+        )
+        self.add_utility(
+            Droid.Materials.VANADIUM,
+            Droid.Colors.WHITE,
+            True,
+            True,
+            False,
+        )
+        self.add_astromech(
+            Droid.Materials.CARBONITE,
+            Droid.Colors.GREEN,
+            False,
+            True,
+            False,
+            True,
+            150,
+        )
+        self.add_janitor(
+            Droid.Materials.CARBONITE,
+            Droid.Colors.GREEN,
+            False,
+            True,
+            True,
+            True,
+            True,
+        )
+        self.add_utility(
+            Droid.Materials.VANADIUM,
+            Droid.Colors.WHITE,
+            True,
+            False,
+            True,
+        )
+        self.add_astromech(
+            Droid.Materials.QUADRANIUM,
+            Droid.Colors.RED,
+            True,
+            False,
+            False,
+            True,
+            100,
+        )
+        self.add_protocol(
+            Droid.Materials.TEARS_OF_A_JEDI,
+            Droid.Colors.BLUE,
+            24,
+        )

@@ -24,7 +24,7 @@ from droids import (
 class UserInterface:
     """Do I/O with the user"""
 
-    MAX_MENU_CHOICES = 3
+    MAX_MENU_CHOICES = 5
 
     def __init__(self, droid_collection):
         """Constructor"""
@@ -40,12 +40,24 @@ class UserInterface:
         print_info("What would you like to do?")
         print("1. Add a new droid to the system")
         print("2. Print the list of droids out")
-        print("3. Exit the program")
+        print("3. Sort the list of droids into categorical order")
+        print("4. Sort the list of droids by Total Cost")
+        print("5. Exit the program")
         print()
 
     def display_exit_message(self):
         """Display the exit program message"""
         print_warning("Exiting the program. Thanks for using.")
+        print()
+
+    def display_sort_into_categories_success_message(self):
+        """Display the sort into categories success message"""
+        print_success("Droid list has been sorted into categories")
+        print()
+
+    def display_sort_by_total_cost_success_message(self):
+        """Display the sort by total cost success message"""
+        print_success("Droid list has been sorted by their Total Cost")
         print()
 
     def print_droid_list(self):
