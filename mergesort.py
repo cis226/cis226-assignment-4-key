@@ -1,5 +1,9 @@
 """Module for Merge Sort"""
 
+# David Barnes
+# CIS 226
+# 6-4-2023
+
 
 class MergeSort:
     """Merge Sort Class"""

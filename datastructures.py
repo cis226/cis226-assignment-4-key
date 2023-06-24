@@ -1,5 +1,9 @@
 """Data Structures module"""
 
+# David Barnes
+# CIS 226
+# 6-4-2023
+
 
 class NodeDataStructure:
     """Base class for Data Structures that need to use a Node"""
